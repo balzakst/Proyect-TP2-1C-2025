@@ -1,9 +1,9 @@
 import express from "express";
-import { getAllCars } from "../controllers/carControllers.js";
+import { getAllUsers } from "../controllers/userController.js";
 //import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getAllCars);
+router.get("/", getAllUsers); 
 
 export default router;
