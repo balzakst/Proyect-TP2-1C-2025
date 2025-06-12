@@ -5,7 +5,7 @@ import { getAllCars , getOneCar , getCarsByMarca, addOneCar , deleteCar , update
 const router = express.Router();
 
 router.get("/", getAllCars);
-router.get("/:marca", getCarsByMarca);
+router.get("/marca/:marca", getCarsByMarca);
 router.get("/:id", getOneCar);
 
 router.post("/add", addOneCar);
