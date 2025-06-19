@@ -1,4 +1,4 @@
-import { getAllCarsService , getCarById , getCarByMarca , addCar , deleteCarById , updateCar } from "../services/carServices.js";
+import { getAllCarsService , getCarById , getCarByMarca , addCar , deleteCarById , updateCar, buyCarService } from "../services/carServices.js";
 import { ObjectId } from "mongodb";
 
 export const getAllCars = async (req, res) => {
@@ -47,11 +47,10 @@ export const getCarsByMarca = async (req, res) => {
 
 export const addOneCar = async (req, res) => {
 
-    // habilitar esta op cuando tengamos el middleware, controla que solo el admin puede agregar autos
-   // const { rol } = req.user;
-   // if (rol !== "admin") {
-   //    return res.status(403).json({ message: "Acceso denegado: solo administradores pueden agregar autos." });
-   // } 
+   const { rol } = req.user;
+   if (rol !== "admin") {
+       return res.status(403).json({ message: "Acceso denegado: solo administradores pueden agregar autos." });
+   } 
 
     try {
         const newCar = await addCar(req.body);
@@ -63,12 +62,12 @@ export const addOneCar = async (req, res) => {
 };
 
 export const deleteCar = async (req, res) => {
-  //const { rol } = req.user;
+  const { rol } = req.user;
   const { id } = req.params;
 
-  //if (rol !== "admin") {
-  //  return res.status(403).json({ message: "Acceso denegado: solo administradores pueden eliminar autos." });
-  //}
+  if (rol !== "admin") {
+    return res.status(403).json({ message: "Acceso denegado: solo administradores pueden eliminar autos." });
+  }
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: "ID inválido" });
@@ -92,9 +91,9 @@ export const updateOneCar = async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body;
 
-    //if (req.user.rol !== "admin") {
-    //    return res.status(403).json({ message: "No autorizado. Solo administradores pueden editar autos." });
-    //}
+    if (req.user.rol !== "admin") {
+        return res.status(403).json({ message: "No autorizado. Solo administradores pueden editar autos." });
+    }
 
     try {
         const result = await updateCar(id, updatedData);
@@ -106,6 +105,32 @@ export const updateOneCar = async (req, res) => {
         res.json({ message: "Auto actualizado correctamente", updatedCar });
     } catch (error) {
         console.error("Error actualizando auto:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+export const buyCar = async (req, res) => {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+    }
+
+    try {
+        const result = await buyCarService(id);
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "Auto no encontrado o no disponible para comprar" });
+        }
+
+        if (result.modifiedCount === 0) {
+            return res.status(400).json({ message: "El auto no está disponible para comprar" });
+        }
+
+        const purchasedCar = await getCarById(id);
+        res.json({ message: "Auto comprado exitosamente", car: purchasedCar });
+    } catch (error) {
+        console.error("Error al comprar auto:", error);
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };

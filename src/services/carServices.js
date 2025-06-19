@@ -1,4 +1,4 @@
-import { findAllCars , findCarById, findCarsByMarca , insertCar , deleteCar , updateCarById } from "../data/carData.js";
+import { findAllCars , findCarById, findCarsByMarca , insertCar , deleteCar , updateCarById, buyCar } from "../data/carData.js";
 
 export const getAllCarsService = async () => {
   return await findAllCars();
@@ -33,4 +33,8 @@ export const deleteCarById = async (id) => {
 
 export const updateCar = async (id, updatedData) => {
     return await updateCarById(id, updatedData);
+};
+
+export const buyCarService = async (id) => {
+    return await buyCar(id);
 };

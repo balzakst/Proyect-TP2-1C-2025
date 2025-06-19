@@ -39,3 +39,11 @@ export const updateCarById = async (id, updatedData) => {
         { $set: updatedData }
     );
 };
+
+export const buyCar = async (id) => {
+    const db = getDb();
+    return await db.collection("cars").updateOne(
+        { _id: new ObjectId(id), disponible: true },
+        { $set: { disponible: false } }
+    );
+};
