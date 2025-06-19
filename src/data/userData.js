@@ -31,3 +31,50 @@ export async function findByCredentials({ email, password }) {
 
     return user;
 }
+
+// REGISTRAR USUARIO
+export async function registerUser({ username, email, password }) {
+    const db = getDb();
+    // Aca verificamos si el usuario ya existe buscándolo por el email
+    const existingUser = await db.collection("users").findOne({ email });
+    if (existingUser) {
+        throw new Error("El email ya está registrado");
+    }
+    // Se hace el Hash de la contraseña
+    // saltround es la cantidad de veces que se aplica el encriptado-->+Encriptado = +Tiempo de procesamiento)
+    const saltRounds = 10;
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.default.hash(password, saltRounds);
+    const newUser = {
+        username,
+        email,
+        password: hashedPassword,
+        rol: "user" // Acá podemos ajustar el rol con el que se puede loguear por defecto
+    };
+    const result = await db.collection("users").insertOne(newUser);
+    return result;
+}
+
+export async function findUserById(id) {
+    const db = getDb();
+    const user = await db.collection("users").findOne({ _id: new ObjectId(id) });
+    return user;
+}
+
+export async function updateUserById(id, updateFields) {
+    const db = getDb();
+
+    // Verificamos que otro usuario no tenga ya ese mail
+    if (updateFields.email) {
+        const existing = await db.collection("users").findOne({ email: updateFields.email, _id: { $ne: new ObjectId(id) } });
+        if (existing) {
+            throw new Error("El email ya está en uso por otro usuario");
+        }
+    }
+
+    const result = await db.collection("users").updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+    );
+    return result;
+}
