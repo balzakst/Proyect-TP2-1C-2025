@@ -46,13 +46,13 @@ export async function loginUserController(req,res){
             process.env.JWT_SECRET, 
             {expiresIn: "2h"}
         );
-        res.json({message: "Login exitoso: ", user, token});
+        return res.json({message: "Login exitoso: ", user, token});
     }catch(error){
         if(error.message === "Credenciales invalidas."){
-            res.status(401).json({message: error.message})
+            return res.status(401).json({message: error.message})
         }
         console.error("Error en login: ", error);
-        res.status(500).json({message: "Error interno en login"})
+        return res.status(500).json({message: "Error interno en login"})
     }
 }
 
