@@ -46,12 +46,6 @@ export const getCarsByMarca = async (req, res) => {
 };
 
 export const addOneCar = async (req, res) => {
-
-   const { rol } = req.user;
-   if (rol !== "admin") {
-       return res.status(403).json({ message: "Acceso denegado: solo administradores pueden agregar autos." });
-   } 
-
     try {
         const newCar = await addCar(req.body);
         res.status(201).json({ message: "Auto agregado con éxito", car: newCar });
@@ -62,12 +56,7 @@ export const addOneCar = async (req, res) => {
 };
 
 export const deleteCar = async (req, res) => {
-  const { rol } = req.user;
   const { id } = req.params;
-
-  if (rol !== "admin") {
-    return res.status(403).json({ message: "Acceso denegado: solo administradores pueden eliminar autos." });
-  }
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: "ID inválido" });
@@ -90,10 +79,6 @@ export const deleteCar = async (req, res) => {
 export const updateOneCar = async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body;
-
-    if (req.user.rol !== "admin") {
-        return res.status(403).json({ message: "No autorizado. Solo administradores pueden editar autos." });
-    }
 
     try {
         const result = await updateCar(id, updatedData);

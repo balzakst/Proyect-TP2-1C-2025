@@ -1,14 +1,20 @@
 import express from "express";
 import { getAllUsersController, deleteUserController, loginUserController, registroUsuarioController, getUserByIdController, updateDetallesController } from "../controllers/userController.js";
-//import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { requireRole } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getAllUsersController); 
-router.get("/:id", getUserByIdController);
-router.delete("/:id", deleteUserController);
+// Rutas públicas (no requieren autenticación)
 router.post("/register", registroUsuarioController);
 router.post("/login", loginUserController);
-router.put("/:id", updateDetallesController);
+
+// Rutas que requieren autenticación
+router.get("/:id", authMiddleware, getUserByIdController);
+router.put("/:id", authMiddleware, updateDetallesController);
+
+// Rutas que requieren rol de administrador
+router.get("/", authMiddleware, requireRole("admin"), getAllUsersController);
+router.delete("/:id", authMiddleware, requireRole("admin"), deleteUserController);
 
 export default router;

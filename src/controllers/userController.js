@@ -77,9 +77,15 @@ export const registroUsuarioController = async (req, res) => {
 // OBTENER USUARIO POR ID
 export const getUserByIdController = async (req, res) => {
     const { id } = req.params;
+    const { _id: userId, rol } = req.user; // Información del usuario
 
     if (!ObjectId.isValid(id)) {
         return res.status(400).json({ message: "ID inválido" });
+    }
+
+    // Verificar permisos
+    if (rol !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "No autorizado. Solo puedes ver tu propio perfil." });
     }
 
     try {
@@ -97,6 +103,7 @@ export const getUserByIdController = async (req, res) => {
 export const updateDetallesController = async (req, res) => {
     const { id } = req.params;
     const { email, username } = req.body;
+    const { _id: userId, rol } = req.user; 
 
     if (!ObjectId.isValid(id)) {
         return res.status(400).json({ message: "ID inválido" });
@@ -104,6 +111,11 @@ export const updateDetallesController = async (req, res) => {
 
     if (!email && !username) {
         return res.status(400).json({ message: "Debes enviar al menos un campo para actualizar (email o username)" });
+    }
+
+    // Verificar permisos
+    if (rol !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "No autorizado. Solo puedes editar tu propio perfil." });
     }
 
     try {
