@@ -49,7 +49,8 @@ export async function registerUser({ username, email, password }) {
         username,
         email,
         password: hashedPassword,
-        rol: "user" // Acá podemos ajustar el rol con el que se puede loguear por defecto
+        rol: "user",
+        favoritos: [] 
     };
     const result = await db.collection("users").insertOne(newUser);
     return result;
@@ -77,4 +78,30 @@ export async function updateUserById(id, updateFields) {
         { $set: updateFields }
     );
     return result;
+}
+
+// Agregar auto a favoritos
+export async function addCarToFavoritos(userId, carId) {
+    const db = getDb();
+    return db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $addToSet: { favoritos: new ObjectId(carId) } }
+    );
+}
+
+// Quitar auto de favoritos
+export async function removeCarFromFavoritos(userId, carId) {
+    const db = getDb();
+    return db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $pull: { favoritos: new ObjectId(carId) } }
+    );
+}
+
+// Obtener autos favoritos
+export async function getFavoritos(userId) {
+    const db = getDb();
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.favoritos) return [];
+    return db.collection("cars").find({ _id: { $in: user.favoritos } }).toArray();
 }

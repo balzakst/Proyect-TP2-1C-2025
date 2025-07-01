@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsersController, deleteUserController, loginUserController, registroUsuarioController, getUserByIdController, updateDetallesController } from "../controllers/userController.js";
+import { getAllUsersController, deleteUserController, loginUserController, registroUsuarioController, getUserByIdController, updateDetallesController, addCarToFavoritosController, removeCarFromFavoritosController, getFavoritosController } from "../controllers/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { requireRole } from "../middleware/roleMiddleware.js";
 
@@ -12,6 +12,9 @@ router.post("/login", loginUserController);
 // Rutas que requieren autenticación
 router.get("/:id", authMiddleware, getUserByIdController);
 router.put("/:id", authMiddleware, updateDetallesController);
+router.post("/:id/favoritos/:carId", authMiddleware, addCarToFavoritosController);
+router.delete("/:id/favoritos/:carId", authMiddleware, removeCarFromFavoritosController);
+router.get("/:id/favoritos", authMiddleware, getFavoritosController);
 
 // Rutas que requieren rol de administrador
 router.get("/", authMiddleware, requireRole("admin"), getAllUsersController);

@@ -1,4 +1,5 @@
 import { getUsersService, deleteUserByIdService, loginUserService, registerUserService, getUserByIdService, updateUserDetailsService } from "../services/userService.js";
+import { addCarToFavoritos, removeCarFromFavoritos, getFavoritos } from "../data/userData.js";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 
@@ -135,6 +136,80 @@ export const updateDetallesController = async (req, res) => {
             return res.status(409).json({ message: error.message });
         }
         console.error("Error actualizando usuario:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+// Agregar auto a favoritos
+export const addCarToFavoritosController = async (req, res) => {
+    const { id, carId } = req.params;
+    const { _id: userId, rol } = req.user;
+
+    if (!ObjectId.isValid(id) || !ObjectId.isValid(carId)) {
+        return res.status(400).json({ message: "ID de usuario o auto inválido" });
+    }
+
+    // Solo el usuario dueño o admin puede modificar sus favoritos
+    if (rol !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "No autorizado para modificar favoritos de otro usuario" });
+    }
+
+    try {
+        // Validar si ya está en favoritos
+        const db = (await import("../data/connection.js")).getDb();
+        const user = await db.collection("users").findOne({ _id: new ObjectId(id) });
+        if (user.favoritos && user.favoritos.some(fav => fav.toString() === carId)) {
+            return res.status(409).json({ message: "El auto ya está en favoritos" });
+        }
+
+        await addCarToFavoritos(id, carId);
+        res.json({ message: "Auto agregado a favoritos" });
+    } catch (error) {
+        console.error("Error agregando favorito:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+// Quitar auto de favoritos
+export const removeCarFromFavoritosController = async (req, res) => {
+    const { id, carId } = req.params;
+    const { _id: userId, rol } = req.user;
+
+    if (!ObjectId.isValid(id) || !ObjectId.isValid(carId)) {
+        return res.status(400).json({ message: "ID de usuario o auto inválido" });
+    }
+
+    if (rol !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "No autorizado para modificar favoritos de otro usuario" });
+    }
+
+    try {
+        await removeCarFromFavoritos(id, carId);
+        res.json({ message: "Auto eliminado de favoritos" });
+    } catch (error) {
+        console.error("Error eliminando favorito:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+// Obtener autos favoritos
+export const getFavoritosController = async (req, res) => {
+    const { id } = req.params;
+    const { _id: userId, rol } = req.user;
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "ID de usuario inválido" });
+    }
+
+    if (rol !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "No autorizado para ver favoritos de otro usuario" });
+    }
+
+    try {
+        const favoritos = await getFavoritos(id);
+        res.json(favoritos);
+    } catch (error) {
+        console.error("Error obteniendo favoritos:", error);
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
