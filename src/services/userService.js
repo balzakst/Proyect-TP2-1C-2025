@@ -1,4 +1,4 @@
-import { findAllUsers, deleteUser, findByCredentials, registerUser, findUserById, updateUserById } from "../data/userData.js";
+import { findAllUsers, deleteUser, findByCredentials, registerUser, findUserById, updateUserById, updateUserRole } from "../data/userData.js";
 
 //TODOS LOS USUARIOS
 export async function getUsersService(){
@@ -45,6 +45,15 @@ export async function getUserByIdService(id) {
 export async function updateUserDetailsService(id, updateFields) {
     try {
         return await updateUserById(id, updateFields);
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Cambiar rol de usuario
+export async function changeUserRoleService(userId, newRole) {
+    try {
+        return await updateUserRole(userId, newRole);
     } catch (error) {
         throw error;
     }

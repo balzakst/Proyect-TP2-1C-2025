@@ -105,3 +105,21 @@ export async function getFavoritos(userId) {
     if (!user || !user.favoritos) return [];
     return db.collection("cars").find({ _id: { $in: user.favoritos } }).toArray();
 }
+
+// Cambiar rol de usuario
+export async function updateUserRole(userId, newRole) {
+    const db = getDb();
+    
+    // Validar que el rol sea válido
+    const validRoles = ['admin', 'user'];
+    if (!validRoles.includes(newRole)) {
+        throw new Error("Rol inválido. Roles válidos: admin, user");
+    }
+    
+    const result = await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { rol: newRole } }
+    );
+    
+    return result;
+}

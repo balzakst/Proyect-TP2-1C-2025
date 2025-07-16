@@ -1,4 +1,4 @@
-import { getUsersService, deleteUserByIdService, loginUserService, registerUserService, getUserByIdService, updateUserDetailsService } from "../services/userService.js";
+import { getUsersService, deleteUserByIdService, loginUserService, registerUserService, getUserByIdService, updateUserDetailsService, changeUserRoleService } from "../services/userService.js";
 import { addCarToFavoritos, removeCarFromFavoritos, getFavoritos } from "../data/userData.js";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
@@ -210,6 +210,43 @@ export const getFavoritosController = async (req, res) => {
         res.json(favoritos);
     } catch (error) {
         console.error("Error obteniendo favoritos:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+// Cambiar rol de usuario
+export const changeUserRoleController = async (req, res) => {
+    const { id } = req.params;
+    const { newRole } = req.body;
+    const { _id: adminId, rol: adminRole } = req.user;
+
+    // Validaciones
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "ID de usuario inválido" });
+    }
+
+    if (!newRole) {
+        return res.status(400).json({ message: "El nuevo rol es requerido" });
+    }
+
+    // Prevenir que un admin se quite sus propios privilegios
+    if (adminId === id) {
+        return res.status(403).json({ message: "No puedes cambiar tu propio rol" });
+    }
+
+    try {
+        const result = await changeUserRoleService(id, newRole);
+        
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        res.json({ message: `Rol del usuario cambiado a ${newRole} correctamente` });
+    } catch (error) {
+        if (error.message.includes("Rol inválido")) {
+            return res.status(400).json({ message: error.message });
+        }
+        console.error("Error cambiando rol:", error);
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
